@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Sequence
 
 from . import __version__
-from .git import GitError, current_context
+from .git import GitContext, GitError, context_for, current_context
 from .hooks.session_end import session_end
 from .mappings import MappingStore
 from .qwen.paths import QwenPaths
@@ -29,8 +29,11 @@ def parser() -> argparse.ArgumentParser:
 
     hook = commands.add_parser("hook", help="commands intended for Qwen hooks")
     hook_commands = hook.add_subparsers(dest="hook_command", required=True)
-    session = hook_commands.add_parser("session-end", help="capture session Git context")
+    session = hook_commands.add_parser(
+        "session-end", help="capture session Git context and refresh reports"
+    )
     session.add_argument("--session-id")
+    session.add_argument("--qwen-home", type=Path)
     session.add_argument("--data-dir", type=Path)
     session.add_argument("--cwd", type=Path, default=Path.cwd(), help=argparse.SUPPRESS)
 
@@ -73,6 +76,23 @@ def _doctor(args: argparse.Namespace) -> int:
     return 0 if healthy else 1
 
 
+def _write_reports(
+    context: GitContext,
+    qwen_home: Path | None,
+    data_dir: Path | None,
+    output_dir: Path,
+) -> None:
+    metrics = collect_metrics(
+        context,
+        QwenPaths.discover(qwen_home),
+        MappingStore(data_dir),
+    )
+    write_json_report(metrics, output_dir / "report.json")
+    write_markdown_report(metrics, output_dir / "report.md")
+    print(f"Wrote {output_dir / 'report.json'}")
+    print(f"Wrote {output_dir / 'report.md'}")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
@@ -86,21 +106,29 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "branch": mapping.branch,
                 "captured_at": mapping.captured_at,
             }, ensure_ascii=False))
+            try:
+                _write_reports(
+                    context_for(mapping.repository, mapping.branch),
+                    args.qwen_home,
+                    args.data_dir,
+                    Path(mapping.repository) / ".qbs",
+                )
+            except (GitError, OSError, ValueError) as exc:
+                print(
+                    "qwencode-branch-stats: session mapping was saved, "
+                    f"but report generation failed: {exc}",
+                    file=sys.stderr,
+                )
             return 0
         if args.command == "doctor":
             return _doctor(args)
         if args.command == "report":
-            context = current_context(args.cwd)
-            metrics = collect_metrics(
-                context,
-                QwenPaths.discover(args.qwen_home),
-                MappingStore(args.data_dir),
+            _write_reports(
+                current_context(args.cwd),
+                args.qwen_home,
+                args.data_dir,
+                args.output_dir.resolve(),
             )
-            output = args.output_dir.resolve()
-            write_json_report(metrics, output / "report.json")
-            write_markdown_report(metrics, output / "report.md")
-            print(f"Wrote {output / 'report.json'}")
-            print(f"Wrote {output / 'report.md'}")
             return 0
     except (GitError, OSError, ValueError) as exc:
         print(f"qwencode-branch-stats: error: {exc}", file=sys.stderr)

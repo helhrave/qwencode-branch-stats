@@ -38,15 +38,19 @@ def normalize_repository(path: str | Path) -> str:
     return os.path.normcase(str(Path(path).resolve()))
 
 
+def context_for(repository: str, branch: str, repository_name: str | None = None) -> GitContext:
+    return GitContext(
+        repository=repository,
+        repository_name=repository_name or Path(repository).name or Path(repository).root,
+        branch=branch,
+    )
+
+
 def current_context(cwd: Path | None = None) -> GitContext:
     toplevel = _git(["rev-parse", "--show-toplevel"], cwd)
     repository = normalize_repository(toplevel)
     branch = _git(["branch", "--show-current"], cwd)
     if not branch:
         raise GitError("detached HEAD is not associated with a branch")
-    return GitContext(
-        repository=repository,
-        repository_name=Path(toplevel).name or Path(repository).root,
-        branch=branch,
-    )
+    return context_for(repository, branch, Path(toplevel).name)
 

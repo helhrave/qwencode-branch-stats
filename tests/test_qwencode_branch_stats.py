@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from qwencode_branch_stats.cli import main
 from qwencode_branch_stats.git import current_context
 from qwencode_branch_stats.hooks.session_end import session_end
 from qwencode_branch_stats.mappings import MappingStore
@@ -192,6 +193,24 @@ class BranchStatsIntegrationTest(unittest.TestCase):
         metrics = collect_metrics(current_context(self.repo), QwenPaths(self.qwen_root), self.store)
         self.assertEqual(metrics["task"]["session_count"], 1)
         self.assertIn("transcript_missing", {item["code"] for item in metrics["warnings"]})
+
+    def test_hook_session_end_refreshes_reports(self) -> None:
+        self.fixture()
+        code = main([
+            "hook", "session-end",
+            "--session-id", SESSION_1,
+            "--cwd", str(self.repo),
+            "--qwen-home", str(self.qwen_root),
+            "--data-dir", str(self.data_root),
+        ])
+        self.assertEqual(code, 0)
+        report = json.loads(
+            (self.repo / ".qbs" / "report.json").read_text(encoding="utf-8")
+        )
+        report_md = (self.repo / ".qbs" / "report.md").read_text(encoding="utf-8")
+        self.assertEqual(report["task"]["repository"], "репозиторий")
+        self.assertEqual(report["task"]["session_count"], 1)
+        self.assertIn("SESSION_TITLE_123", report_md)
 
 
 if __name__ == "__main__":

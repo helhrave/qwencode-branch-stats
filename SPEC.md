@@ -13,6 +13,10 @@ report.json
 
 `report.json` содержит машиночитаемое представление тех же метрик для дальнейшей обработки.
 
+Отчёты сохраняются в папку `.qbs/` в корне проекта. Они автоматически
+обновляются при завершении Qwen session (через `SessionEnd` hook) и могут быть
+перестроены вручную командой `qbs report`.
+
 Отчёт строится для комбинации:
 
 ```text
@@ -351,13 +355,26 @@ qbs = "qwencode_branch_stats.cli:main"
 
 ## 3.1. Версионирование
 
-Git tags в репозитории `qwencode-branch-stats` соответствуют версии Qwen Code,
-для которой предназначен релиз. Например, tag `0.1.0` означает поддержку
-Qwen Code 0.1.0.
+Версия `qwencode-branch-stats` соответствует версии Qwen Code, на которой
+проверен этот код. Например, версия `0.24.0` означает, что код протестирован
+с Qwen Code 0.24.0.
 
-Версии в `pyproject.toml` и `__version__` должны совпадать с текущим tag.
-При изменении форматов Qwen Code в новой версии Qwen Code выпускается релиз
-с tag, соответствующим этой версии.
+Правила:
+
+- Git tag repository, `version` в `pyproject.toml` и `__version__` пакета —
+  три совпадающих значения, равных версии Qwen Code, на которой код проверен;
+
+- `qbs --version` показывает эту же версию;
+
+- после обновления Qwen Code на новую версию на ней прогоняются тесты и
+  проверяется разбор артефактов Qwen Code (usage, chats, subagents,
+  settings.json) и построение отчёта;
+
+- если проверка успешна, все три значения повышаются до новой версии
+  Qwen Code и создаётся соответствующий tag;
+
+- если код не проходит проверку на новой версии Qwen Code, версия не
+  повышается — сначала исправляются parsers.
 
 # 4. Источники данных
 
@@ -428,7 +445,13 @@ git branch --show-current
 
 Имя branch сохраняется как есть.
 
-Hook занимается только фиксацией связи session с Git context. Парсинг Qwen telemetry и расчёт метрик выполняются при построении отчёта.
+Hook занимается фиксацией связи session с Git context и актуальностью отчётов:
+после сохранения mapping он автоматически перестраивает `report.md` и
+`report.json` в папку `.qbs/` в корне repository. Парсинг Qwen telemetry и
+расчёт метрик выполняются при построении отчёта — hook вызывает тот же
+конвейер, что и команда `qbs report`. Если построение отчёта завершилось
+ошибкой, сохранённый mapping не откатывается, а текст ошибки выводится в
+stderr hook-процесса.
 
 # 6. Session mappings
 
@@ -887,6 +910,9 @@ current repository + branch
 qbs hook session-end
 ```
 
+Она сохраняет mapping session и перегенерирует отчёты в `<repository>/.qbs/`
+(см. раздел 5).
+
 Рекомендуется диагностическая команда:
 
 ```text
@@ -1241,7 +1267,7 @@ Branch
 В MVP входят:
 
 ```text
-SessionEnd hook
+SessionEnd hook (mapping + отчёты в .qbs/)
 session → repository/branch mapping
 Qwen custom title parsing
 token-usage parser
