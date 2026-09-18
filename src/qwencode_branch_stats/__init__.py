@@ -1,4 +1,4 @@
 """qwencode-branch-stats package (console command: qbs)."""
 
-__version__ = "0.24.0.0"
+__version__ = "0.24.0.1"
 
