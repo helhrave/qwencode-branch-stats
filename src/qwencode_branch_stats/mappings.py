@@ -10,15 +10,15 @@ from .models import SessionMapping
 
 
 def default_data_dir() -> Path:
-    override = os.environ.get("SDD_METRICS_DATA_DIR")
+    override = os.environ.get("QBS_DATA_DIR")
     if override:
         return Path(override).expanduser()
     if os.name == "nt":
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
-        return base / "sdd-metrics"
+        return base / "qwencode-branch-stats"
     if sys_platform() == "darwin":
-        return Path.home() / "Library" / "Application Support" / "sdd-metrics"
-    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "sdd-metrics"
+        return Path.home() / "Library" / "Application Support" / "qwencode-branch-stats"
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "qwencode-branch-stats"
 
 
 def sys_platform() -> str:

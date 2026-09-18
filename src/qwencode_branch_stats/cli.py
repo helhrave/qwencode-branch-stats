@@ -17,12 +17,12 @@ from .service import collect_metrics
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(prog="sdd-metrics")
+    root = argparse.ArgumentParser(prog="qwencode-branch-stats")
     root.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = root.add_subparsers(dest="command", required=True)
 
     report = commands.add_parser("report", help="generate report.json and report.md")
-    report.add_argument("--output-dir", type=Path, default=Path.cwd())
+    report.add_argument("--output-dir", type=Path, default=Path(".qbs"))
     report.add_argument("--qwen-home", type=Path)
     report.add_argument("--data-dir", type=Path)
     report.add_argument("--cwd", type=Path, default=Path.cwd(), help=argparse.SUPPRESS)
@@ -103,7 +103,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Wrote {output / 'report.md'}")
             return 0
     except (GitError, OSError, ValueError) as exc:
-        print(f"sdd-metrics: error: {exc}", file=sys.stderr)
+        print(f"qwencode-branch-stats: error: {exc}", file=sys.stderr)
         return 2
     return 2
 

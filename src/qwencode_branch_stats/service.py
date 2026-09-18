@@ -60,7 +60,7 @@ def collect_metrics(
         subagents[session_id] = runs
 
     return build_task_metrics(
-        repository=context.repository,
+        repository_name=context.repository_name,
         branch=context.branch,
         session_infos=infos,
         usage=usage,

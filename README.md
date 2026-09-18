@@ -1,6 +1,7 @@
-# sdd-metrics
+# qwencode-branch-stats
 
-`sdd-metrics` — кроссплатформенный CLI-инструмент на Python для расчёта
+`qwencode-branch-stats` (краткое имя команды из консоли — `qbs`) —
+кроссплатформенный CLI-инструмент на Python для расчёта
 стоимости и метрик использования Qwen Code в разрезе Git-ветки.
 
 ## 1. Что делает приложение
@@ -34,7 +35,7 @@
 ```markdown
 # feature/PROJ-1234-add-cache
 
-Repository: /work/my-project
+Repository: my-project
 Branch: feature/PROJ-1234-add-cache
 Sessions: 3
 Observation span: 2026-09-17T10:20:00Z — 2026-09-18T14:45:00Z
@@ -70,6 +71,12 @@ Total cost: 14.99
 - установленный и используемый Qwen Code;
 - запуск команд внутри Git working tree.
 
+### Версии
+
+Git-теги репозитория соответствуют версии Qwen Code, для которой предназначен
+релиз: тег `0.1.0` — поддержка Qwen Code 0.1.0. Устанавливайте тег,
+совпадающий с вашей версией Qwen Code.
+
 ### Установка
 
 Из каталога с исходным кодом:
@@ -78,16 +85,10 @@ Total cost: 14.99
 python -m pip install .
 ```
 
-Или из готового wheel:
-
-```bash
-python -m pip install dist/sdd_metrics-0.1.0-py3-none-any.whl
-```
-
 Проверка установки:
 
 ```bash
-sdd-metrics --version
+qbs --version
 ```
 
 ### Шаг 1. Подключить SessionEnd hook
@@ -95,7 +96,7 @@ sdd-metrics --version
 Настройте Qwen Code так, чтобы при завершении session он запускал команду:
 
 ```bash
-sdd-metrics hook session-end
+qbs hook session-end
 ```
 
 Hook должен получать JSON-событие Qwen через standard input. Инструмент
@@ -121,13 +122,13 @@ hook определяет repository и branch именно в момент за
 
 ```bash
 echo '{"sessionId":"18697f75-6ead-472a-b700-18afb74ab2a2"}' \
-  | sdd-metrics hook session-end
+  | qbs hook session-end
 ```
 
 Также идентификатор можно передать явно:
 
 ```bash
-sdd-metrics hook session-end \
+qbs hook session-end \
   --session-id 18697f75-6ead-472a-b700-18afb74ab2a2
 ```
 
@@ -142,20 +143,20 @@ sessions понятные custom titles средствами Qwen Code, напр
 
 Если session переименовывалась несколько раз, в отчёт попадёт последнее
 сохранённое custom title. Если title не задан, значение останется пустым —
-`sdd-metrics` не генерирует названия самостоятельно.
+`qwencode-branch-stats` не генерирует названия самостоятельно.
 
 ### Шаг 3. Проверить окружение
 
 Из рабочей директории проекта:
 
 ```bash
-sdd-metrics doctor
+qbs doctor
 ```
 
 Для машиночитаемого результата:
 
 ```bash
-sdd-metrics doctor --json
+qbs doctor --json
 ```
 
 Команда проверяет Git-контекст, наличие каталога Qwen, `settings.json`, usage
@@ -166,21 +167,21 @@ files и число sessions, связанных с текущей веткой.
 Из нужной Git-ветки выполните:
 
 ```bash
-sdd-metrics report --output-dir .sdd-metrics
+qbs report
 ```
 
-Результат:
+По умолчанию отчёты сохраняются в папку `.qbs/` в текущем каталоге:
 
 ```text
-.sdd-metrics/
+.qbs/
 ├── report.json
 └── report.md
 ```
 
-Если `--output-dir` не указан, файлы создаются в текущем каталоге:
+Каталог вывода можно изменить параметром `--output-dir`:
 
 ```bash
-sdd-metrics report
+qbs report --output-dir /path/to/reports
 ```
 
 Повторный запуск безопасен: отчёт заново строится из исходных данных Qwen.
@@ -192,7 +193,7 @@ sdd-metrics report
 По умолчанию Qwen-артефакты читаются из `~/.qwen`. Путь можно изменить:
 
 ```bash
-export SDD_METRICS_QWEN_HOME=/path/to/qwen-data
+export QBS_QWEN_HOME=/path/to/qwen-data
 ```
 
 Также поддерживается переменная `QWEN_HOME`.
@@ -200,16 +201,15 @@ export SDD_METRICS_QWEN_HOME=/path/to/qwen-data
 Расположение внутреннего хранилища связей session с Git можно изменить:
 
 ```bash
-export SDD_METRICS_DATA_DIR=/path/to/sdd-metrics-data
+export QBS_DATA_DIR=/path/to/qbs-data
 ```
 
 Для разового запуска доступны параметры `--qwen-home` и `--data-dir`:
 
 ```bash
-sdd-metrics report \
+qbs report \
   --qwen-home /path/to/qwen-data \
-  --data-dir /path/to/sdd-metrics-data \
-  --output-dir .sdd-metrics
+  --data-dir /path/to/qbs-data
 ```
 
 В Windows используйте синтаксис переменных окружения и путей, соответствующий
@@ -226,7 +226,7 @@ Qwen Code session
        ▼
 session ID → repository → branch
        │
-       │ sdd-metrics report
+       │ qbs report
        ▼
 ┌─────────────────────────────────────────┐
 │ token usage + chats + subagents         │
@@ -242,7 +242,7 @@ session ID → repository → branch
 
 ### 3.1. Привязка session к Git-ветке
 
-Команда `sdd-metrics hook session-end` получает session ID и запускает:
+Команда `qbs hook session-end` получает session ID и запускает:
 
 ```bash
 git rev-parse --show-toplevel
@@ -259,9 +259,13 @@ session ID + абсолютный путь repository + branch + captured_at
 названиями веток. Каждая session хранится в отдельном атомарно заменяемом файле,
 поэтому несколько Qwen-процессов могут завершаться параллельно.
 
+В сами отчёты в качестве repository попадает только название папки проекта —
+папки, в которой находится `.git`. Полный путь используется лишь как внутренний
+идентификатор в хранилище связей и в отчёт не записывается.
+
 ### 3.2. Поиск sessions для отчёта
 
-При запуске `sdd-metrics report` инструмент снова определяет текущие repository
+При запуске `qbs report` инструмент снова определяет текущие repository
 и branch, после чего выбирает только связанные с этой комбинацией завершённые
 sessions.
 
@@ -358,25 +362,26 @@ mcp__gitlab__get_mcp_server_version
 - shell-команды и их вывод;
 - MCP payloads;
 - содержимое файлов;
-- API keys и credentials.
+- API keys и credentials;
+- полные пути repository на диске.
 
 Разрешены session titles, названия моделей, agents и tools, MCP server/tool,
-Git repository/branch, timestamps, statuses и числовые показатели.
+название папки проекта и Git branch, timestamps, statuses и числовые показатели.
 
 ## Основные команды
 
 ```bash
 # Зафиксировать Git-контекст завершённой session
-sdd-metrics hook session-end
+qbs hook session-end
 
 # Проверить окружение
-sdd-metrics doctor
+qbs doctor
 
-# Построить report.json и report.md
-sdd-metrics report --output-dir .sdd-metrics
+# Построить report.json и report.md (по умолчанию в .qbs/)
+qbs report
 
 # Показать версию
-sdd-metrics --version
+qbs --version
 ```
 
 ## Запуск тестов

@@ -13,6 +13,7 @@ class GitError(RuntimeError):
 @dataclass(frozen=True)
 class GitContext:
     repository: str
+    repository_name: str
     branch: str
 
 
@@ -38,9 +39,14 @@ def normalize_repository(path: str | Path) -> str:
 
 
 def current_context(cwd: Path | None = None) -> GitContext:
-    repository = normalize_repository(_git(["rev-parse", "--show-toplevel"], cwd))
+    toplevel = _git(["rev-parse", "--show-toplevel"], cwd)
+    repository = normalize_repository(toplevel)
     branch = _git(["branch", "--show-current"], cwd)
     if not branch:
         raise GitError("detached HEAD is not associated with a branch")
-    return GitContext(repository=repository, branch=branch)
+    return GitContext(
+        repository=repository,
+        repository_name=Path(toplevel).name or Path(repository).root,
+        branch=branch,
+    )
 

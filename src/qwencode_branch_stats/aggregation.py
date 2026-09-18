@@ -95,7 +95,7 @@ def _mcp_object(mcp: dict[tuple[str, str], ToolMetrics]) -> dict[str, dict[str, 
 
 
 def build_task_metrics(
-    repository: str,
+    repository_name: str,
     branch: str,
     session_infos: dict[str, SessionInfo],
     usage: list[UsageRecord],
@@ -236,7 +236,7 @@ def build_task_metrics(
 
     return {
         "task": {
-            "repository": repository,
+            "repository": repository_name,
             "branch": branch,
             "session_count": len(session_infos),
             "observation_started_at": min(observation_starts) if observation_starts else None,

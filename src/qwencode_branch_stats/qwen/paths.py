@@ -11,7 +11,7 @@ class QwenPaths:
 
     @classmethod
     def discover(cls, override: Path | None = None) -> "QwenPaths":
-        configured = override or os.environ.get("SDD_METRICS_QWEN_HOME") or os.environ.get("QWEN_HOME")
+        configured = override or os.environ.get("QBS_QWEN_HOME") or os.environ.get("QWEN_HOME")
         return cls(Path(configured).expanduser() if configured else Path.home() / ".qwen")
 
     @property

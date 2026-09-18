@@ -3,20 +3,21 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sdd-metrics"
-version = "0.1.0"
+name = "qwencode-branch-stats"
+version = "0.24.0"
 description = "Local Qwen Code usage metrics by Git repository and branch"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "sdd-metrics contributors"}]
+authors = [{name = "qwencode-branch-stats contributors"}]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
 
 [project.scripts]
-sdd-metrics = "sdd_metrics.cli:main"
+qwencode-branch-stats = "qwencode_branch_stats.cli:main"
+qbs = "qwencode_branch_stats.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,0 +1,305 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-18T08:38:53.230606Z",
+  "task": {
+    "repository": "sdd-metrics-0.1.0",
+    "branch": "main",
+    "session_count": 1,
+    "observation_started_at": "2026-09-18T08:34:17.649Z",
+    "observation_ended_at": "2026-09-18T08:38:47.354Z"
+  },
+  "totals": {
+    "requests": 7,
+    "tokens": {
+      "input": 190255,
+      "cached_input": 121984,
+      "output": 3253,
+      "reasoning": 1306,
+      "total": 193508
+    },
+    "cost": 3.209983,
+    "api_duration_ms": 88511,
+    "tool_calls": 24,
+    "mcp_calls": 2,
+    "subagent_runs": 1,
+    "tool_duration_ms": 75185,
+    "subagent_duration_ms": 14870
+  },
+  "models": [
+    {
+      "name": "routerai/qwen/qwen3.8-flash",
+      "requests": 7,
+      "tokens": {
+        "input": 190255,
+        "cached_input": 121984,
+        "output": 3253,
+        "reasoning": 1306,
+        "total": 193508
+      },
+      "cost": 3.209983,
+      "api_duration_ms": 88511
+    }
+  ],
+  "agents": [
+    {
+      "name": "Explore",
+      "runs": 1,
+      "requests": 2,
+      "tokens": {
+        "input": 21522,
+        "cached_input": 10240,
+        "output": 490,
+        "reasoning": 33,
+        "total": 22012
+      },
+      "cost": 0.369342,
+      "api_duration_ms": 11836,
+      "models": [
+        {
+          "name": "routerai/qwen/qwen3.8-flash",
+          "requests": 2,
+          "tokens": {
+            "input": 21522,
+            "cached_input": 10240,
+            "output": 490,
+            "reasoning": 33,
+            "total": 22012
+          },
+          "cost": 0.369342,
+          "api_duration_ms": 11836
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "runs": null,
+      "requests": 5,
+      "tokens": {
+        "input": 168733,
+        "cached_input": 111744,
+        "output": 2763,
+        "reasoning": 1273,
+        "total": 171496
+      },
+      "cost": 2.840641,
+      "api_duration_ms": 76675,
+      "models": [
+        {
+          "name": "routerai/qwen/qwen3.8-flash",
+          "requests": 5,
+          "tokens": {
+            "input": 168733,
+            "cached_input": 111744,
+            "output": 2763,
+            "reasoning": 1273,
+            "total": 171496
+          },
+          "cost": 2.840641,
+          "api_duration_ms": 76675
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "agent",
+      "calls": 2,
+      "success": 1,
+      "failed": 0,
+      "duration_ms": 21469
+    },
+    {
+      "name": "mcp__gitlab__get_mcp_server_version",
+      "calls": 2,
+      "success": 1,
+      "failed": 0,
+      "duration_ms": 5049
+    },
+    {
+      "name": "read_file",
+      "calls": 12,
+      "success": 5,
+      "failed": 1,
+      "duration_ms": 27632
+    },
+    {
+      "name": "run_shell_command",
+      "calls": 6,
+      "success": 3,
+      "failed": 0,
+      "duration_ms": 14459
+    },
+    {
+      "name": "tool_search",
+      "calls": 2,
+      "success": 1,
+      "failed": 0,
+      "duration_ms": 6576
+    }
+  ],
+  "mcp": [
+    {
+      "server": "gitlab",
+      "tool": "get_mcp_server_version",
+      "calls": 2,
+      "success": 1,
+      "failed": 0,
+      "duration_ms": 5049
+    }
+  ],
+  "sessions": [
+    {
+      "id": "f153466e-afa7-4709-abbb-b91cfd8fc1fc",
+      "title": null,
+      "started_at": "2026-09-18T08:34:17.649Z",
+      "ended_at": "2026-09-18T08:38:47.354Z",
+      "requests": 7,
+      "tokens": {
+        "input": 190255,
+        "cached_input": 121984,
+        "output": 3253,
+        "reasoning": 1306,
+        "total": 193508
+      },
+      "cost": 3.209983,
+      "api_duration_ms": 88511,
+      "models": [
+        {
+          "name": "routerai/qwen/qwen3.8-flash",
+          "requests": 7,
+          "tokens": {
+            "input": 190255,
+            "cached_input": 121984,
+            "output": 3253,
+            "reasoning": 1306,
+            "total": 193508
+          },
+          "cost": 3.209983,
+          "api_duration_ms": 88511
+        }
+      ],
+      "agents": [
+        {
+          "name": "Explore",
+          "runs": 1,
+          "requests": 2,
+          "tokens": {
+            "input": 21522,
+            "cached_input": 10240,
+            "output": 490,
+            "reasoning": 33,
+            "total": 22012
+          },
+          "cost": 0.369342,
+          "api_duration_ms": 11836,
+          "models": [
+            {
+              "name": "routerai/qwen/qwen3.8-flash",
+              "requests": 2,
+              "tokens": {
+                "input": 21522,
+                "cached_input": 10240,
+                "output": 490,
+                "reasoning": 33,
+                "total": 22012
+              },
+              "cost": 0.369342,
+              "api_duration_ms": 11836
+            }
+          ]
+        },
+        {
+          "name": "main",
+          "runs": null,
+          "requests": 5,
+          "tokens": {
+            "input": 168733,
+            "cached_input": 111744,
+            "output": 2763,
+            "reasoning": 1273,
+            "total": 171496
+          },
+          "cost": 2.840641,
+          "api_duration_ms": 76675,
+          "models": [
+            {
+              "name": "routerai/qwen/qwen3.8-flash",
+              "requests": 5,
+              "tokens": {
+                "input": 168733,
+                "cached_input": 111744,
+                "output": 2763,
+                "reasoning": 1273,
+                "total": 171496
+              },
+              "cost": 2.840641,
+              "api_duration_ms": 76675
+            }
+          ]
+        }
+      ],
+      "tools": {
+        "agent": {
+          "calls": 2,
+          "success": 1,
+          "failed": 0,
+          "duration_ms": 21469
+        },
+        "mcp__gitlab__get_mcp_server_version": {
+          "calls": 2,
+          "success": 1,
+          "failed": 0,
+          "duration_ms": 5049
+        },
+        "read_file": {
+          "calls": 12,
+          "success": 5,
+          "failed": 1,
+          "duration_ms": 27632
+        },
+        "run_shell_command": {
+          "calls": 6,
+          "success": 3,
+          "failed": 0,
+          "duration_ms": 14459
+        },
+        "tool_search": {
+          "calls": 2,
+          "success": 1,
+          "failed": 0,
+          "duration_ms": 6576
+        }
+      },
+      "mcp": {
+        "gitlab": {
+          "get_mcp_server_version": {
+            "calls": 2,
+            "success": 1,
+            "failed": 0,
+            "duration_ms": 5049
+          }
+        }
+      },
+      "subagents": [
+        {
+          "agent_id": "Explore-call_7e699a2de0a94817b83436a0",
+          "agent_type": "Explore",
+          "parent_session_id": "f153466e-afa7-4709-abbb-b91cfd8fc1fc",
+          "parent_agent_id": null,
+          "created_at": "2026-09-18T08:34:49.935Z",
+          "last_updated_at": "2026-09-18T08:35:04.805Z",
+          "status": "completed",
+          "name": "Explore",
+          "resume_count": 0,
+          "depth": 0,
+          "duration_ms": 14870
+        }
+      ],
+      "tool_calls": 24,
+      "mcp_calls": 2,
+      "subagent_runs": 1,
+      "subagent_duration_ms": 14870
+    }
+  ],
+  "warnings": []
+}

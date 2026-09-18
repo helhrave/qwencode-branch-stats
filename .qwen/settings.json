@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sdd-metrics hook session-end",
+            "command": "qbs hook session-end",
             "name": "session-report",
             "description": "Записывает отчёт о завершённой сессии",
             "timeout": 1000000,

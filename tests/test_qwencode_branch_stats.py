@@ -6,13 +6,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from sdd_metrics.git import current_context
-from sdd_metrics.hooks.session_end import session_end
-from sdd_metrics.mappings import MappingStore
-from sdd_metrics.qwen.paths import QwenPaths
-from sdd_metrics.reports.json_report import write_json_report
-from sdd_metrics.reports.markdown_report import write_markdown_report
-from sdd_metrics.service import collect_metrics
+from qwencode_branch_stats.git import current_context
+from qwencode_branch_stats.hooks.session_end import session_end
+from qwencode_branch_stats.mappings import MappingStore
+from qwencode_branch_stats.qwen.paths import QwenPaths
+from qwencode_branch_stats.reports.json_report import write_json_report
+from qwencode_branch_stats.reports.markdown_report import write_markdown_report
+from qwencode_branch_stats.service import collect_metrics
 
 
 SESSION_1 = "18697f75-6ead-472a-b700-18afb74ab2a2"
@@ -36,7 +36,7 @@ def write_jsonl(path: Path, rows: list[object], malformed: bool = False) -> None
             handle.write("{not-json\n")
 
 
-class SddMetricsIntegrationTest(unittest.TestCase):
+class BranchStatsIntegrationTest(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
@@ -137,6 +137,8 @@ class SddMetricsIntegrationTest(unittest.TestCase):
         self.capture(SESSION_2)
         metrics = collect_metrics(current_context(self.repo), QwenPaths(self.qwen_root), self.store)
 
+        self.assertEqual(current_context(self.repo).repository_name, "репозиторий")
+        self.assertEqual(metrics["task"]["repository"], "репозиторий")
         self.assertEqual(metrics["task"]["session_count"], 2)
         self.assertEqual(metrics["totals"]["requests"], 3)  # duplicate u2 ignored
         self.assertEqual(metrics["totals"]["tokens"]["cached_input"], 410_000)
@@ -163,6 +165,8 @@ class SddMetricsIntegrationTest(unittest.TestCase):
         combined = (self.output / "report.json").read_text(encoding="utf-8")
         combined += (self.output / "report.md").read_text(encoding="utf-8")
         self.assertIn("SESSION_TITLE_123", combined)
+        self.assertNotIn(str(self.repo), combined)
+        self.assertNotIn(str(self.root), combined)
         for secret in SECRETS:
             self.assertNotIn(secret, combined)
 
