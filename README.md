@@ -325,13 +325,16 @@ session IDs, поэтому большие usage и transcript files не заг
 Для каждого LLM request цена берётся из `settings.json` и рассчитывается так:
 
 ```text
-input cost  = inputTokens  / 1 000 000 × inputPerMillionTokens
+input cost  = (inputTokens - cachedTokens) / 1 000 000 × inputPerMillionTokens
+cache cost  = cachedTokens / 1 000 000 × cacheReadPerMillionTokens
 output cost = outputTokens / 1 000 000 × outputPerMillionTokens
-cost        = input cost + output cost
+cost        = input cost + cache cost + output cost
 ```
 
-`cachedTokens` показываются отдельно, но при текущей структуре Qwen pricing не
-имеют отдельного тарифа и уже входят в расчёт через `inputTokens`.
+`cachedTokens` входят в `inputTokens`, поэтому при расчёте из `inputTokens`
+вычитаются cached-токены и тарифицируются отдельно по
+`cacheReadPerMillionTokens`. Если для модели `cacheReadPerMillionTokens` не
+задан, cached-токены тарифицируются по `inputPerMillionTokens`.
 
 `thoughtsTokens` выводятся как reasoning tokens и не прибавляются повторно к
 `outputTokens`.

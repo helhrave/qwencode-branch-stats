@@ -41,8 +41,13 @@ def request_cost(record: UsageRecord, pricing: ModelPricing | None) -> Decimal |
     if pricing is None:
         return None
     million = Decimal(1_000_000)
+    cached = min(record.tokens.cached_input, record.tokens.input)
+    cache_price = pricing.cache_read_per_million
+    if cache_price is None:
+        cache_price = pricing.input_per_million
     return (
-        Decimal(record.tokens.input) / million * pricing.input_per_million
+        Decimal(record.tokens.input - cached) / million * pricing.input_per_million
+        + Decimal(cached) / million * cache_price
         + Decimal(record.tokens.output) / million * pricing.output_per_million
     )
 

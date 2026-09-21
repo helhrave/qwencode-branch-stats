@@ -4,12 +4,15 @@ import json
 import subprocess
 import tempfile
 import unittest
+from decimal import Decimal
 from pathlib import Path
 
+from qwencode_branch_stats.aggregation import request_cost
 from qwencode_branch_stats.cli import main
 from qwencode_branch_stats.git import current_context
 from qwencode_branch_stats.hooks.session_end import session_end
 from qwencode_branch_stats.mappings import MappingStore
+from qwencode_branch_stats.models import ModelPricing, TokenMetrics, UsageRecord
 from qwencode_branch_stats.qwen.paths import QwenPaths
 from qwencode_branch_stats.reports.json_report import write_json_report
 from qwencode_branch_stats.reports.markdown_report import write_markdown_report
@@ -53,8 +56,16 @@ class BranchStatsIntegrationTest(unittest.TestCase):
         (self.qwen_root / "settings.json").parent.mkdir(parents=True, exist_ok=True)
         (self.qwen_root / "settings.json").write_text(json.dumps({
             "modelPricing": {
-                "model-a": {"inputPerMillionTokens": 2, "outputPerMillionTokens": 4},
-                "model-b": {"inputPerMillionTokens": 10, "outputPerMillionTokens": 20},
+                "model-a": {
+                    "inputPerMillionTokens": 2,
+                    "outputPerMillionTokens": 4,
+                    "cacheReadPerMillionTokens": 1,
+                },
+                "model-b": {
+                    "inputPerMillionTokens": 10,
+                    "outputPerMillionTokens": 20,
+                    "cacheReadPerMillionTokens": 5,
+                },
             },
             "apiKey": "SECRET_API_KEY_123",
         }), encoding="utf-8")
@@ -152,11 +163,13 @@ class BranchStatsIntegrationTest(unittest.TestCase):
         first = next(item for item in metrics["sessions"] if item["id"] == SESSION_1)
         self.assertEqual(first["title"], "SESSION_TITLE_123")
         self.assertEqual(len(first["models"]), 2)
+        model_a = next(item for item in first["models"] if item["name"] == "model-a")
+        self.assertAlmostEqual(model_a["cost"], 1.64)
         self.assertEqual(first["tools"]["run_shell_command"]["success"], 1)
         self.assertEqual(first["mcp"]["gitlab"]["get_version"]["failed"], 1)
         agent = next(item for item in metrics["agents"] if item["name"] == "general-purpose")
         self.assertEqual(agent["runs"], 2)
-        self.assertAlmostEqual(agent["cost"], 1.04)
+        self.assertAlmostEqual(agent["cost"], 0.99)
         warning_codes = {item["code"] for item in metrics["warnings"]}
         self.assertIn("pricing_missing", warning_codes)
         self.assertIn("malformed_jsonl", warning_codes)
@@ -211,6 +224,47 @@ class BranchStatsIntegrationTest(unittest.TestCase):
         self.assertEqual(report["task"]["repository"], "репозиторий")
         self.assertEqual(report["task"]["session_count"], 1)
         self.assertIn("SESSION_TITLE_123", report_md)
+
+
+class RequestCostTest(unittest.TestCase):
+    def record(self, input_tokens: int, cached_tokens: int, output_tokens: int) -> UsageRecord:
+        return UsageRecord(
+            id="u1",
+            timestamp=None,
+            session_id="s1",
+            model="model",
+            source="main",
+            tokens=TokenMetrics(
+                input=input_tokens,
+                cached_input=cached_tokens,
+                output=output_tokens,
+                total=input_tokens + output_tokens,
+            ),
+            api_duration_ms=0,
+        )
+
+    def test_cached_tokens_use_cache_read_price(self) -> None:
+        pricing = ModelPricing(
+            input_per_million=Decimal("2"),
+            output_per_million=Decimal("4"),
+            cache_read_per_million=Decimal("1"),
+        )
+        self.assertEqual(request_cost(self.record(1_000_000, 400_000, 0), pricing), Decimal("1.6"))
+
+    def test_missing_cache_read_price_falls_back_to_input_price(self) -> None:
+        pricing = ModelPricing(
+            input_per_million=Decimal("2"),
+            output_per_million=Decimal("4"),
+        )
+        self.assertEqual(request_cost(self.record(1_000_000, 400_000, 0), pricing), Decimal("2.0"))
+
+    def test_cached_tokens_are_capped_by_input(self) -> None:
+        pricing = ModelPricing(
+            input_per_million=Decimal("2"),
+            output_per_million=Decimal("4"),
+            cache_read_per_million=Decimal("1"),
+        )
+        self.assertEqual(request_cost(self.record(100, 1_000, 0), pricing), Decimal("0.0001"))
 
 
 if __name__ == "__main__":

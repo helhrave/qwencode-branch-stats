@@ -25,9 +25,13 @@ def read_pricing(path: Path) -> tuple[dict[str, ModelPricing], list[WarningMessa
         if not isinstance(raw, dict):
             continue
         try:
+            raw_cache = raw.get("cacheReadPerMillionTokens")
             result[str(model)] = ModelPricing(
                 input_per_million=Decimal(str(raw["inputPerMillionTokens"])),
                 output_per_million=Decimal(str(raw["outputPerMillionTokens"])),
+                cache_read_per_million=(
+                    Decimal(str(raw_cache)) if raw_cache is not None else None
+                ),
             )
         except (KeyError, InvalidOperation, TypeError, ValueError):
             warnings.append(WarningMessage("pricing_invalid", f"Invalid pricing for model {model}"))

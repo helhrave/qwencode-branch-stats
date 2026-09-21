@@ -763,7 +763,9 @@ MCP calls также входят в общее количество tool calls.
 
 # 14. Pricing
 
-Pricing читается непосредственно из Qwen `settings.json`.
+Pricing читается непосредственно из Qwen `settings.json`. 
+Для расчета кеша необходимо добавить в modelPricing поле, которого нет в qwencode:  
+cacheReadPerMillinTokens
 
 Пример:
 
@@ -772,11 +774,13 @@ Pricing читается непосредственно из Qwen `settings.json
   "modelPricing": {
     "routerai/deepseek/deepseek-v4-flash": {
       "inputPerMillionTokens": 6,
-      "outputPerMillionTokens": 12
+      "outputPerMillionTokens": 12,
+      "cacheReadPerMillionTokens": 2.12
     },
     "routerai/qwen/qwen3.8-flash": {
       "inputPerMillionTokens": 16,
-      "outputPerMillionTokens": 51
+      "outputPerMillionTokens": 51,
+      "cacheReadPerMillionTokens": 1.75
     }
   }
 }
@@ -786,9 +790,14 @@ Pricing читается непосредственно из Qwen `settings.json
 
 ```text
 input_cost =
-    inputTokens
+    (inputTokens - cachedTokens)
     / 1_000_000
     * inputPerMillionTokens
+
+cache_cost =
+    cachedTokens
+    / 1_000_000
+    * cacheReadPerMillionTokens
 
 output_cost =
     outputTokens
@@ -796,7 +805,7 @@ output_cost =
     * outputPerMillionTokens
 
 cost =
-    input_cost + output_cost
+    input_cost + cache_cost + output_cost
 ```
 
 После расчёта стоимости каждого request выполняется агрегация:
@@ -817,7 +826,13 @@ branch
 
 `cachedTokens` сохраняются как отдельная метрика.
 
-При текущей структуре `modelPricing` отдельная цена cached tokens отсутствует, поэтому стоимость рассчитывается на основе `inputTokens`.
+`cachedTokens` входят в `inputTokens`, поэтому стоимость рассчитывается так:
+из `inputTokens` вычитаются cached-токены, cached-токены тарифицируются по
+`cacheReadPerMillionTokens`, и результаты складываются (см. раздел 14).
+
+Если `cacheReadPerMillionTokens` для модели не задан, cached-токены
+тарифицируются по `inputPerMillionTokens` — это соответствует расчёту без
+отдельного тарифа кеша.
 
 `thoughtsTokens` сохраняются в отчёте как:
 

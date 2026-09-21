@@ -75,6 +75,7 @@ class UsageRecord:
 class ModelPricing:
     input_per_million: Decimal
     output_per_million: Decimal
+    cache_read_per_million: Optional[Decimal] = None
 
 
 @dataclass
